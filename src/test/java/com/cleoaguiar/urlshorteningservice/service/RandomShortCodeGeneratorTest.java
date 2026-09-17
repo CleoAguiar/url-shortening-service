@@ -1,5 +1,7 @@
-package com.cleoaguiar.urlshorteningservice.domain.service;
+package com.cleoaguiar.urlshorteningservice.service;
 
+import com.cleoaguiar.urlshorteningservice.service.RandomShortCodeGenerator;
+import com.cleoaguiar.urlshorteningservice.service.ShortCodeGenerator;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

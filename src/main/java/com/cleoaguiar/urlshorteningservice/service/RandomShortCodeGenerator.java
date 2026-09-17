@@ -1,4 +1,4 @@
-package com.cleoaguiar.urlshorteningservice.domain.service;
+package com.cleoaguiar.urlshorteningservice.service;
 
 import org.springframework.stereotype.Component;
 
