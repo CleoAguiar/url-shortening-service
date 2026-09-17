@@ -1,4 +1,4 @@
-package com.cleoaguiar.urlshorteningservice.domain.repository;
+package com.cleoaguiar.urlshorteningservice.repository;
 
 import com.cleoaguiar.urlshorteningservice.domain.entity.ShortUrl;
 import org.springframework.data.jpa.repository.JpaRepository;

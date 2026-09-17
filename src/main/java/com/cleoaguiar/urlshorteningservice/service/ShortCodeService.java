@@ -1,6 +1,6 @@
-package com.cleoaguiar.urlshorteningservice.domain.service;
+package com.cleoaguiar.urlshorteningservice.service;
 
-import com.cleoaguiar.urlshorteningservice.domain.repository.ShortUrlRepository;
+import com.cleoaguiar.urlshorteningservice.repository.ShortUrlRepository;
 import com.cleoaguiar.urlshorteningservice.exception.ShortCodeGenerationException;
 import org.springframework.stereotype.Service;
 
