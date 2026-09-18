@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -73,6 +76,20 @@ public class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.path").value("/test/validation"));
     }
 
+    @Test
+    void shouldReturnInternalServerErrorWithoutExposingInternalDetails() throws Exception {
+        mockMvc.perform(get("/test/internal-error"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.error").value("Internal Server Error"))
+                .andExpect(jsonPath("$.message").value("An unexpected error occurred"))
+                .andExpect(jsonPath("$.path").value("/test/internal-error"))
+                .andExpect(content().string(
+                        not(containsString("Sensitive internal error details"))
+                ));
+    }
+
     record TestRequest(
             @NotBlank(message = "URL must not be blank")
             String url
@@ -91,6 +108,11 @@ public class GlobalExceptionHandlerTest {
                 @Valid @RequestBody TestRequest request
         ){
             return  ResponseEntity.ok().build();
+        }
+
+        @GetMapping("/test/internal-error")
+        ResponseEntity<Void> internalError() {
+            throw  new RuntimeException("Sensitive internal error details");
         }
     }
 }
