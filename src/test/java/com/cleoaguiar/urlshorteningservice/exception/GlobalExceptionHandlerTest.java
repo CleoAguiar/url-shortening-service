@@ -57,6 +57,22 @@ public class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.path").value("/test/validation"));
     }
 
+    @Test
+    void shouldReturnBadRequestWhenRequestBodyIsMalformed() throws  Exception {
+        mockMvc.perform(post("/test/validation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                        {
+                            "url": "https://example.com"
+                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.message").value("Malformed request body"))
+                .andExpect(jsonPath("$.path").value("/test/validation"));
+    }
+
     record TestRequest(
             @NotBlank(message = "URL must not be blank")
             String url
