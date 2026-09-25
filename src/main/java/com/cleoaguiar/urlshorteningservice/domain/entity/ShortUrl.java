@@ -41,7 +41,7 @@ public class ShortUrl {
     private Instant updatedAt;
 
     @Column(name = "access_count", nullable = false)
-    private Long accessCount;
+    private Long accessCount = 0L;
 
     protected ShortUrl() {
 
