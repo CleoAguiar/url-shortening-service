@@ -1,5 +1,6 @@
 package com.cleoaguiar.urlshorteningservice.exception;
 
+import com.cleoaguiar.urlshorteningservice.service.ShortUrlService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +33,9 @@ public class GlobalExceptionHandlerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private ShortUrlService shortUrlService;
 
     @Test
     void shouldReturnNotFoundWhenShortUrlDoesNotExist() throws  Exception {
