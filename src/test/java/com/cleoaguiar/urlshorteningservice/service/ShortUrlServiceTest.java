@@ -2,12 +2,15 @@ package com.cleoaguiar.urlshorteningservice.service;
 
 import com.cleoaguiar.urlshorteningservice.domain.entity.ShortUrl;
 import com.cleoaguiar.urlshorteningservice.dto.ShortenUrlResponse;
+import com.cleoaguiar.urlshorteningservice.exception.ShortUrlNotFoundException;
 import com.cleoaguiar.urlshorteningservice.repository.ShortUrlRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -91,5 +94,38 @@ public class ShortUrlServiceTest {
 
         verify(shortCodeGenerator, times(5)).generate();
         verify(shortUrlRepository, never()).save(any(ShortUrl.class));
+    }
+
+    @Test
+    void shouldFindShortUrlByShortCode() {
+        String originalUrl = "https://exemple.com";
+        String shortCode = "abc1234";
+
+        ShortUrl shortUrl = new ShortUrl(originalUrl, shortCode);
+
+        when(shortUrlRepository.findByShortCode(shortCode))
+                .thenReturn(Optional.of(shortUrl));
+
+        ShortenUrlResponse response = shortUrlService.findByShortCode(shortCode);
+
+        assertEquals(originalUrl, response.originalUrl());
+        assertEquals(shortCode, response.shortCode());
+
+        verify(shortUrlRepository).findByShortCode(shortCode);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenShortCodeDoesNotExist() {
+        String shortCode = "unknown";
+
+        when(shortUrlRepository.findByShortCode(shortCode))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ShortUrlNotFoundException.class,
+                () -> shortUrlService.findByShortCode(shortCode)
+        );
+
+        verify(shortUrlRepository).findByShortCode(shortCode);
     }
 }

@@ -6,6 +6,8 @@ import com.cleoaguiar.urlshorteningservice.service.ShortUrlService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,5 +31,14 @@ public class ShortUrlController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
+    }
+
+    @GetMapping("/{shortCode}")
+    public ResponseEntity<ShortenUrlResponse> findByShortCode(
+            @PathVariable String shortCode
+    ) {
+        ShortenUrlResponse response = shortUrlService.findByShortCode(shortCode);
+
+        return ResponseEntity.ok(response);
     }
 }
