@@ -63,4 +63,22 @@ public class ShortUrlService {
         );
     }
 
+    public ShortenUrlResponse update(String shortCode, String newOriginalUrl) {
+        ShortUrl shortUrl = shortUrlRepository.findByShortCode(shortCode)
+                .orElseThrow(() -> new ShortUrlNotFoundException(
+                        "Short URL not found for code: " + shortCode
+                ));
+
+        shortUrl.updateOriginalUrl(newOriginalUrl);
+
+        ShortUrl updatedShortUrl = shortUrlRepository.save(shortUrl);
+
+        return new ShortenUrlResponse(
+                updatedShortUrl.getId(),
+                updatedShortUrl.getOriginalUrl(),
+                updatedShortUrl.getShortCode(),
+                updatedShortUrl.getCreatedAt()
+        );
+    }
+
 }
