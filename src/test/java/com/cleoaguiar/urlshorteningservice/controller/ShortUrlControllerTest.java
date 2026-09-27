@@ -17,6 +17,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -124,4 +125,71 @@ public class ShortUrlControllerTest {
 
         verify(shortUrlService).findByShortCode(shortCode);
     }
+
+    @Test
+    void shouldUpdateShortUrlSuccessfully() throws Exception {
+        String newUrl = "https://new.com";
+        String shortCode = "abc1234";
+        Instant createdAt = Instant.parse("2026-09-24T22:00:00Z");
+
+        ShortenUrlResponse response = new ShortenUrlResponse(
+                1L,
+                newUrl,
+                shortCode,
+                createdAt
+        );
+
+        when(shortUrlService.update(shortCode, newUrl))
+                .thenReturn(response);
+
+        mockMvc.perform(put("/api/urls/{shortCode}", shortCode)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "originalUrl": "https://new.com"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.originalUrl").value(newUrl))
+                .andExpect(jsonPath("$.shortCode").value(shortCode));
+
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenUrlIsInvalid() throws Exception {
+        String shortCode = "abc1234";
+
+        mockMvc.perform(put("/api/urls/{shortCode}", shortCode)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "originalUrl": "invalid-url"
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(shortUrlService);
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenUpdatingNonexistentShortCode() throws Exception {
+        String shortCode = "unknown";
+        String newUrl = "https://new.com";
+
+        when(shortUrlService.update(shortCode, newUrl))
+                .thenThrow(new ShortUrlNotFoundException(
+                        "Short URL not found for code: " + shortCode
+                ));
+
+        mockMvc.perform(put("/api/urls/{shortCode}", shortCode)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "originalUrl": "https://new.com"
+                                }
+                                """))
+                .andExpect(status().isNotFound());
+    }
+
 }
