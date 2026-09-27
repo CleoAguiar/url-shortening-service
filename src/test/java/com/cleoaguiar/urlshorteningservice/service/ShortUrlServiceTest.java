@@ -128,4 +128,43 @@ public class ShortUrlServiceTest {
 
         verify(shortUrlRepository).findByShortCode(shortCode);
     }
+
+    @Test
+    void shouldUpdateOriginalUrl() {
+        String originalUrl = "https://old.com";
+        String shortCode = "abc1234";
+        String newUrl = "https://new.com";
+
+        ShortUrl shortUrl = new ShortUrl(originalUrl, shortCode);
+
+        when(shortUrlRepository.findByShortCode(shortCode))
+                .thenReturn(Optional.of(shortUrl));
+
+        when(shortUrlRepository.save(any(ShortUrl.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ShortenUrlResponse response = shortUrlService.update(shortCode, newUrl);
+
+        assertEquals(newUrl, response.originalUrl());
+        assertEquals(shortCode, response.shortCode());
+
+        verify(shortUrlRepository).save(shortUrl);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingNonexistentShortCode() {
+        String shortCode = "unknown";
+        String newUrl = "https://new.com";
+
+        when(shortUrlRepository.findByShortCode(shortCode))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ShortUrlNotFoundException.class,
+                () -> shortUrlService.update(shortCode, newUrl)
+        );
+
+        verify(shortUrlRepository).findByShortCode(shortCode);
+        verify(shortUrlRepository, never()).save(any(ShortUrl.class));
+    }
 }
