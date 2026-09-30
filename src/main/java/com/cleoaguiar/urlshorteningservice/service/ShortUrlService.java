@@ -81,4 +81,13 @@ public class ShortUrlService {
         );
     }
 
+    public void delete(String shortCode) {
+        ShortUrl shortUrl = shortUrlRepository.findByShortCode(shortCode)
+                .orElseThrow(() -> new ShortUrlNotFoundException(
+                        "Short URL not found for code: " + shortCode
+                ));
+
+        shortUrlRepository.delete(shortUrl);
+    }
+
 }
