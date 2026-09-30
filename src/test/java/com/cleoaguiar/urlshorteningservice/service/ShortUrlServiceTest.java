@@ -167,4 +167,36 @@ public class ShortUrlServiceTest {
         verify(shortUrlRepository).findByShortCode(shortCode);
         verify(shortUrlRepository, never()).save(any(ShortUrl.class));
     }
+
+    @Test
+    void shouldDeleteShortUrl() {
+        String originalUrl = "https://exemple.com";
+        String shortCode = "abc1234";
+
+        ShortUrl shortUrl = new ShortUrl(originalUrl, shortCode);
+
+        when(shortUrlRepository.findByShortCode(shortCode))
+                .thenReturn(Optional.of(shortUrl));
+
+        shortUrlService.delete(shortCode);
+
+        verify(shortUrlRepository).findByShortCode(shortCode);
+        verify(shortUrlRepository).delete(shortUrl);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingNonexistentShortCode() {
+        String shortCode = "unknown";
+
+        when(shortUrlRepository.findByShortCode(shortCode))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ShortUrlNotFoundException.class,
+                () -> shortUrlService.delete(shortCode)
+        );
+
+        verify(shortUrlRepository).findByShortCode(shortCode);
+        verify(shortUrlRepository, never()).delete(any(ShortUrl.class));
+    }
 }

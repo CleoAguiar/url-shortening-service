@@ -12,9 +12,11 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -192,4 +194,32 @@ public class ShortUrlControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void shouldDeleteShortUrlSuccessfully() throws Exception {
+        String shortCode = "abc1234";
+
+        mockMvc.perform(delete("/api/urls/{shortCode}", shortCode))
+                .andExpect(status().isNoContent());
+
+        verify(shortUrlService).delete(shortCode);
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenDeletingNonexistentShortCode() throws Exception {
+        String shortCode = "unknown";
+
+        doThrow(new ShortUrlNotFoundException(
+                "Short URL not found for code: " + shortCode
+        )).when(shortUrlService).delete(shortCode);
+
+        mockMvc.perform(delete("/api/urls/{shortCode}", shortCode))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not Found"))
+                .andExpect(jsonPath("$.message")
+                        .value("Short URL not found for code: " + shortCode))
+                .andExpect(jsonPath("$.path").value("/api/urls/" + shortCode));
+
+        verify(shortUrlService).delete(shortCode);
+    }
 }
