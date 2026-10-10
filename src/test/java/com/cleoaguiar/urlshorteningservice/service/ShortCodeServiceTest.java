@@ -27,6 +27,8 @@ class ShortCodeServiceTest {
     @InjectMocks
     private ShortCodeService shortCodeService;
 
+    private static final int MAX_GENERATION_ATTEMPTS = 5;
+
     @Test
     void shouldGenerateAnotherCodeWhenCollisionOccurs() {
         when(shortCodeGenerator.generate()).thenReturn("ABC1234", "XYZ5678");
@@ -35,14 +37,19 @@ class ShortCodeServiceTest {
 
         String result = shortCodeService.generateUniqueCode();
         assertEquals("XYZ5678", result);
+
         verify(shortCodeGenerator, times(2)).generate();
+        verify(shortUrlRepository).existsByShortCode("ABC1234");
+        verify(shortUrlRepository).existsByShortCode("XYZ5678");
     }
 
     @Test
     void shouldThrowExceptionWhenMaximumAttemptsAreReached() {
         when(shortCodeGenerator.generate()).thenReturn("ABC1234");
         when(shortUrlRepository.existsByShortCode("ABC1234")).thenReturn(true);
-        assertThrows(ShortCodeGenerationException.class, ()-> shortCodeService.generateUniqueCode());
-        verify(shortCodeGenerator, times(5)).generate();
+        assertThrows(ShortCodeGenerationException.class, () -> shortCodeService.generateUniqueCode());
+
+        verify(shortCodeGenerator, times(MAX_GENERATION_ATTEMPTS)).generate();
+        verify(shortUrlRepository, times(MAX_GENERATION_ATTEMPTS)).existsByShortCode("ABC1234");
     }
 }

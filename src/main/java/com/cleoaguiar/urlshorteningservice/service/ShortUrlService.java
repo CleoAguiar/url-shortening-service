@@ -32,7 +32,7 @@ public class ShortUrlService {
         throw new IllegalStateException(
                 "Unable to generate a unique short code after "
                         + MAX_GENERATION_ATTEMPTS
-                        + " attemps"
+                        + " attempts"
         );
     }
 

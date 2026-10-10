@@ -31,6 +31,9 @@ public class ShortUrlServiceTest {
     @InjectMocks
     private ShortUrlService shortUrlService;
 
+    private static final int MAX_GENERATION_ATTEMPTS = 5;
+    private static final int EXPECTED_GENERATION_ATTEMPTS = 2;
+
     @Test
     void shouldShortenUrlSuccessfully() {
         String originalUrl = "https://exemple.com";
@@ -49,6 +52,10 @@ public class ShortUrlServiceTest {
 
         assertEquals(originalUrl, response.originalUrl());
         assertEquals(shortCode, response.shortCode());
+
+        verify(shortCodeGenerator).generate();
+        verify(shortUrlRepository).existsByShortCode(shortCode);
+        verify(shortUrlRepository).save(any(ShortUrl.class));
     }
 
     @Test
@@ -74,7 +81,10 @@ public class ShortUrlServiceTest {
         assertEquals(originalUrl, response.originalUrl());
         assertEquals(uniqueCode, response.shortCode());
 
-        verify(shortCodeGenerator, times(2)).generate();
+        verify(shortCodeGenerator, times(EXPECTED_GENERATION_ATTEMPTS)).generate();
+        verify(shortUrlRepository).existsByShortCode(duplicateCode);
+        verify(shortUrlRepository).existsByShortCode(uniqueCode);
+        verify(shortUrlRepository).save(any(ShortUrl.class));
     }
 
     @Test
@@ -92,7 +102,8 @@ public class ShortUrlServiceTest {
                 IllegalStateException.class, () -> shortUrlService.shorten(originalUrl)
         );
 
-        verify(shortCodeGenerator, times(5)).generate();
+        verify(shortCodeGenerator, times(MAX_GENERATION_ATTEMPTS)).generate();
+        verify(shortUrlRepository, times(MAX_GENERATION_ATTEMPTS)).existsByShortCode(duplicateCode);
         verify(shortUrlRepository, never()).save(any(ShortUrl.class));
     }
 
