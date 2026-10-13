@@ -71,7 +71,62 @@ public class ShortUrlControllerTest {
                                     "originalUrl": "invalid-url"
                                 }
                                 """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.message")
+                        .value("originalUrl: Original URL must be a valid URL"))
+                .andExpect(jsonPath("$.path").value("/api/urls"));
+
+        verifyNoInteractions(shortUrlService);
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenOriginalUrlIsMissing() throws Exception {
+        mockMvc.perform(post("/api/urls")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.message").exists())
+                .andExpect(jsonPath("$.path").value("/api/urls"));
+
+        verifyNoInteractions(shortUrlService);
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenOriginalUrlIsEmpty() throws Exception {
+        mockMvc.perform(post("/api/urls")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "originalUrl": ""
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.message").exists())
+                .andExpect(jsonPath("$.path").value("/api/urls"));
+
+        verifyNoInteractions(shortUrlService);
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenOriginalUrlContainsOnlyWhitespace() throws Exception {
+        mockMvc.perform(post("/api/urls")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "originalUrl": "    "
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.message").exists())
+                .andExpect(jsonPath("$.path").value("/api/urls"));
 
         verifyNoInteractions(shortUrlService);
     }
@@ -169,7 +224,12 @@ public class ShortUrlControllerTest {
                                     "originalUrl": "invalid-url"
                                 }
                                 """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.message")
+                        .value("originalUrl: Original URL must be valid"))
+                .andExpect(jsonPath("$.path").value("/api/urls/" + shortCode));
 
         verifyNoInteractions(shortUrlService);
     }
