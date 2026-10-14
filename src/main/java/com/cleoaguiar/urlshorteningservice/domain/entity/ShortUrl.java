@@ -99,4 +99,8 @@ public class ShortUrl {
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
+
+    public Long getAccessCount() {
+        return accessCount;
+    }
 }

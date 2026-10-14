@@ -55,6 +55,8 @@ public class ShortUrlService {
                         "Short URL not found for code: " + shortCode
                 ));
 
+        shortUrlRepository.incrementAccessCount(shortCode);
+
         return new ShortenUrlResponse(
                 shortUrl.getId(),
                 shortUrl.getOriginalUrl(),
