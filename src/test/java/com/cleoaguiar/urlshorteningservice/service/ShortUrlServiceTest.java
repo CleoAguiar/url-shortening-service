@@ -123,6 +123,7 @@ public class ShortUrlServiceTest {
         assertEquals(shortCode, response.shortCode());
 
         verify(shortUrlRepository).findByShortCode(shortCode);
+        verify(shortUrlRepository).incrementAccessCount(shortCode);
     }
 
     @Test
@@ -138,6 +139,7 @@ public class ShortUrlServiceTest {
         );
 
         verify(shortUrlRepository).findByShortCode(shortCode);
+        verify(shortUrlRepository, never()).incrementAccessCount(shortCode);
     }
 
     @Test
@@ -160,6 +162,22 @@ public class ShortUrlServiceTest {
         assertEquals(shortCode, response.shortCode());
 
         verify(shortUrlRepository).save(shortUrl);
+    }
+
+    @Test
+    void shouldIncrementAccessCountForMultipleSuccessfulAccesses() {
+        String originalUrl = "https://exemple.com";
+        String shortCode = "abc1234";
+
+        ShortUrl shortUrl = new ShortUrl(originalUrl, shortCode);
+
+        when(shortUrlRepository.findByShortCode(shortCode))
+                .thenReturn(Optional.of(shortUrl));
+
+        shortUrlService.findByShortCode(shortCode);
+        shortUrlService.findByShortCode(shortCode);
+
+        verify(shortUrlRepository, times(2)).incrementAccessCount(shortCode);
     }
 
     @Test
