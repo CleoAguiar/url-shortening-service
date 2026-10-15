@@ -2,6 +2,7 @@ package com.cleoaguiar.urlshorteningservice.service;
 
 import com.cleoaguiar.urlshorteningservice.domain.entity.ShortUrl;
 import com.cleoaguiar.urlshorteningservice.dto.ShortenUrlResponse;
+import com.cleoaguiar.urlshorteningservice.dto.UrlStatisticsResponse;
 import com.cleoaguiar.urlshorteningservice.exception.ShortUrlNotFoundException;
 import com.cleoaguiar.urlshorteningservice.repository.ShortUrlRepository;
 import org.springframework.stereotype.Service;
@@ -92,4 +93,17 @@ public class ShortUrlService {
         shortUrlRepository.delete(shortUrl);
     }
 
+    public UrlStatisticsResponse getStatistics(String shortCode) {
+        ShortUrl shortUrl = shortUrlRepository.findByShortCode(shortCode)
+                .orElseThrow(() -> new ShortUrlNotFoundException(
+                        "Short URL not found: " + shortCode
+                ));
+
+        return new UrlStatisticsResponse(
+                shortUrl.getShortCode(),
+                shortUrl.getOriginalUrl(),
+                shortUrl.getCreatedAt(),
+                shortUrl.getAccessCount()
+        );
+    }
 }
