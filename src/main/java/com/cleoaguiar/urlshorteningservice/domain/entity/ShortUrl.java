@@ -103,4 +103,8 @@ public class ShortUrl {
     public Long getAccessCount() {
         return accessCount;
     }
+
+    public void setAccessCount(Long accessCount) {
+        this.accessCount = accessCount;
+    }
 }
