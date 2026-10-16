@@ -3,6 +3,7 @@ package com.cleoaguiar.urlshorteningservice.controller;
 import com.cleoaguiar.urlshorteningservice.dto.ShortenUrlRequest;
 import com.cleoaguiar.urlshorteningservice.dto.ShortenUrlResponse;
 import com.cleoaguiar.urlshorteningservice.dto.UpdateShortUrlRequest;
+import com.cleoaguiar.urlshorteningservice.dto.UrlStatisticsResponse;
 import com.cleoaguiar.urlshorteningservice.service.ShortUrlService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -62,5 +63,14 @@ public class ShortUrlController {
         shortUrlService.delete(shortCode);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{shortCode}/statistics")
+    public ResponseEntity<UrlStatisticsResponse> getStatistics(
+            @PathVariable String shortCode
+    ) {
+        UrlStatisticsResponse response = shortUrlService.getStatistics(shortCode);
+
+        return ResponseEntity.ok(response);
     }
 }
