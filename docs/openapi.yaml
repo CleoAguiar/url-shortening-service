@@ -1,0 +1,176 @@
+openapi: 3.1.0
+
+info:
+  title: URL Shortening Service API
+  version: 1.0.0
+  description: API for creating, managing, and retrieving shortened URLs.
+
+paths:
+  /api/urls:
+    post:
+      tags:
+        - URLs
+      summary: Shorten a URL
+      description: Creates a shortened URL from the provided original URL.
+      operationId: shortenUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShortenUrlRequest'
+      responses:
+        '201':
+          description: Short URL created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortenUrlResponse'
+        '400':
+          description: Invalid request or URL.
+
+  /api/urls/{shortCode}:
+    parameters:
+      - name: shortCode
+        in: path
+        required: true
+        description: Unique code of the shortened URL.
+        schema:
+          type: string
+        example: abc1234
+
+    get:
+      tags:
+        - URLs
+      summary: Get a shortened URL
+      description: Retrieves the details of a shortened URL.
+      operationId: findUrlByShortCode
+      responses:
+        '200':
+          description: Short URL found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortenUrlResponse'
+        '404':
+          description: Short URL not found.
+
+    put:
+      tags:
+        - URLs
+      summary: Update a shortened URL
+      description: Updates the original URL associated with an existing short code.
+      operationId: updateShortUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateShortUrlRequest'
+      responses:
+        '200':
+          description: Short URL updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortenUrlResponse'
+        '400':
+          description: Invalid request or URL.
+        '404':
+          description: Short URL not found.
+
+    delete:
+      tags:
+        - URLs
+      summary: Delete a shortened URL
+      description: Deletes an existing shortened URL.
+      operationId: deleteShortUrl
+      responses:
+        '204':
+          description: Short URL deleted successfully.
+        '404':
+          description: Short URL not found.
+
+components:
+  schemas:
+    ShortenUrlRequest:
+      type: object
+      description: Request to create a shortened URL.
+      required:
+        - originalUrl
+      properties:
+        originalUrl:
+          type: string
+          format: uri
+          description: Original URL to be shortened
+          example: https://example.com/articles
+
+    ShortenUrlResponse:
+      type: object
+      description: Details of a shortened URL.
+      required:
+        - id
+        - originalUrl
+        - shortCode
+        - createdAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier of the shortened URL.
+          example: 1
+        originalUrl:
+          type: string
+          format: uri
+          description: The original destination URL.
+          example: https://example.com/article
+        shortCode:
+          type: string
+          description: Unique code assigned to the shortened URL.
+          example: abc1234
+        createdAt:
+          type: string
+          format: date-time
+          description: Date and time when the shortened URL was created.
+          example: "2026-09-24T22:00:00Z"
+
+    UpdateShortUrlRequest:
+      type: object
+      description: Request to update the original URL associated with a short code.
+      required:
+        - originalUrl
+      properties:
+        originalUrl:
+          type: string
+          format: uri
+          description: The new destination URL.
+          example: https://example.com/updated-article
+
+    UrlStatisticsResponse:
+      type: object
+      description: Statistics and details of a shortened URL.
+      required:
+        - shortCode
+        - originalUrl
+        - createdAt
+        - accessCount
+      properties:
+        shortCode:
+          type: string
+          description: Unique code of the shortened URL.
+          example: abc1234
+        originalUrl:
+          type: string
+          format: uri
+          description: The original destination URL.
+          example: https://example.com/article
+        createdAt:
+          type: string
+          format: date-time
+          description: Date and time when the shortened URL was created.
+          example: "2026-09-24T22:00:00Z"
+        accessCount:
+          type: integer
+          format: int64
+          description: Number of times the shortened URL was accessed.
+          example: 42
