@@ -7,5 +7,5 @@ public record ShortenUrlRequest (
         @NotBlank(message = "Original URL is required")
         @URL(message = "Original URL must be a valid URL")
         String originalUrl
-){
+) {
 }
