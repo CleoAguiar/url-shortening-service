@@ -20,17 +20,21 @@ public class ShortUrlService {
         this.shortCodeService = shortCodeService;
     }
 
+    private ShortenUrlResponse toResponse(ShortUrl shortUrl) {
+        return new ShortenUrlResponse(
+                shortUrl.getId(),
+                shortUrl.getOriginalUrl(),
+                shortUrl.getShortCode(),
+                shortUrl.getCreatedAt()
+        );
+    }
+
     public ShortenUrlResponse shorten(String originalUrl) {
         String shortCode = shortCodeService.generateUniqueCode();
         ShortUrl shortUrl = new ShortUrl(originalUrl, shortCode);
         ShortUrl savedShortUrl = shortUrlRepository.save(shortUrl);
 
-        return new ShortenUrlResponse(
-                savedShortUrl.getId(),
-                savedShortUrl.getOriginalUrl(),
-                savedShortUrl.getShortCode(),
-                savedShortUrl.getCreatedAt()
-        );
+        return toResponse(savedShortUrl);
     }
 
     public ShortenUrlResponse findByShortCode(String shortCode) {
@@ -41,12 +45,7 @@ public class ShortUrlService {
 
         shortUrlRepository.incrementAccessCount(shortCode);
 
-        return new ShortenUrlResponse(
-                shortUrl.getId(),
-                shortUrl.getOriginalUrl(),
-                shortUrl.getShortCode(),
-                shortUrl.getCreatedAt()
-        );
+        return toResponse(shortUrl);
     }
 
     public ShortenUrlResponse update(String shortCode, String newOriginalUrl) {
@@ -59,12 +58,7 @@ public class ShortUrlService {
 
         ShortUrl updatedShortUrl = shortUrlRepository.save(shortUrl);
 
-        return new ShortenUrlResponse(
-                updatedShortUrl.getId(),
-                updatedShortUrl.getOriginalUrl(),
-                updatedShortUrl.getShortCode(),
-                updatedShortUrl.getCreatedAt()
-        );
+        return toResponse(updatedShortUrl);
     }
 
     public void delete(String shortCode) {
