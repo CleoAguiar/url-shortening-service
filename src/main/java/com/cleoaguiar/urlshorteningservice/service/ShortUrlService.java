@@ -10,35 +10,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class ShortUrlService {
     private final ShortUrlRepository shortUrlRepository;
-    private final ShortCodeGenerator shortCodeGenerator;
-    private static final int MAX_GENERATION_ATTEMPTS = 5;
+    private final ShortCodeService shortCodeService;
 
     public ShortUrlService(
             ShortUrlRepository shortUrlRepository,
-            ShortCodeGenerator shortCodeGenerator
+            ShortCodeService shortCodeService
     ) {
         this.shortUrlRepository = shortUrlRepository;
-        this.shortCodeGenerator = shortCodeGenerator;
-    }
-
-    private String generateUniqueShortCode() {
-        for (int attempt = 0; attempt < MAX_GENERATION_ATTEMPTS; attempt++) {
-            String shortCode = shortCodeGenerator.generate();
-
-            if (!shortUrlRepository.existsByShortCode(shortCode)) {
-                return shortCode;
-            }
-        }
-
-        throw new IllegalStateException(
-                "Unable to generate a unique short code after "
-                        + MAX_GENERATION_ATTEMPTS
-                        + " attempts"
-        );
+        this.shortCodeService = shortCodeService;
     }
 
     public ShortenUrlResponse shorten(String originalUrl) {
-        String shortCode = generateUniqueShortCode();
+        String shortCode = shortCodeService.generateUniqueCode();
         ShortUrl shortUrl = new ShortUrl(originalUrl, shortCode);
         ShortUrl savedShortUrl = shortUrlRepository.save(shortUrl);
 
