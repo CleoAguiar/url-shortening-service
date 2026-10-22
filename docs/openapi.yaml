@@ -28,6 +28,16 @@ paths:
                 $ref: '#/components/schemas/ShortenUrlResponse'
         '400':
           description: Invalid request or URL.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
 
   /api/urls/{shortCode}:
     parameters:
@@ -54,6 +64,16 @@ paths:
                 $ref: '#/components/schemas/ShortenUrlResponse'
         '404':
           description: Short URL not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
 
     put:
       tags:
@@ -76,8 +96,22 @@ paths:
                 $ref: '#/components/schemas/ShortenUrlResponse'
         '400':
           description: Invalid request or URL.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '404':
           description: Short URL not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
 
     delete:
       tags:
@@ -90,6 +124,54 @@ paths:
           description: Short URL deleted successfully.
         '404':
           description: Short URL not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+
+  /api/urls/{shortCode}/statistics:
+    get:
+      tags:
+        - URLs
+      summary: Get URL statistics
+      description: >
+        Retrieves statistics for a shortened URL, including its current
+        access count. Retrieving statistics does not increment the counter.
+      operationId: getUrlStatistics
+      parameters:
+        - name: shortCode
+          in: path
+          required: true
+          description: Unique code of the shortened URL.
+          schema:
+            type: string
+          example: abc1234
+      responses:
+        '200':
+          description: URL statistics retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlStatisticsResponse'
+        '404':
+          description: Short URL not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
 
 components:
   schemas:
@@ -174,3 +256,33 @@ components:
           format: int64
           description: Number of times the shortened URL was accessed.
           example: 42
+
+    ApiError:
+      type: object
+      description: Standard error response returned by the API.
+      required:
+        - timestamp
+        - status
+        - error
+        - message
+        - path
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Date and time when the error occurred.
+          example: "2026-10-21T20:30:50.721Z"
+        status:
+          type: integer
+          description: HTTP status code.
+        error:
+          type: string
+          description: HTTP status description.
+        message:
+          type: string
+          description: Details about the error.
+          example: "Short URL not found for code: abc1234"
+        path:
+          type: string
+          description: Request path that caused the error.
+          example: /api/urls/abc1234
