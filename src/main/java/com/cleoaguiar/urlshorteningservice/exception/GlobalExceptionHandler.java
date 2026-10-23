@@ -17,17 +17,13 @@ public class GlobalExceptionHandler {
             ShortUrlNotFoundException exception,
             HttpServletRequest request
     ) {
-        ApiError error = new ApiError(
-                LocalDateTime.now(),
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
-                exception.getMessage(),
-                request.getRequestURI()
-        );
-
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(error);
+                .body(buildApiError(
+                        HttpStatus.NOT_FOUND,
+                        exception.getMessage(),
+                        request
+                ));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -43,17 +39,13 @@ public class GlobalExceptionHandler {
                 .findFirst()
                 .orElse("Invalid request");
 
-        ApiError error = new ApiError(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                message,
-                request.getRequestURI()
-        );
-
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(error);
+                .body(buildApiError(
+                        HttpStatus.BAD_REQUEST,
+                        message,
+                        request
+                ));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -61,17 +53,13 @@ public class GlobalExceptionHandler {
             HttpMessageNotReadableException exception,
             HttpServletRequest request
     ) {
-        ApiError error = new ApiError(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "Malformed request body",
-                request.getRequestURI()
-        );
-
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(error);
+                .body(buildApiError(
+                        HttpStatus.BAD_REQUEST,
+                        "Malformed request body",
+                        request
+                ));
     }
 
     @ExceptionHandler(Exception.class)
@@ -79,16 +67,26 @@ public class GlobalExceptionHandler {
             Exception exception,
             HttpServletRequest request
     ) {
-        ApiError error = new ApiError(
-                LocalDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "An unexpected error occurred",
-                request.getRequestURI()
-        );
-
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(error);
+                .body(buildApiError(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "An unexpected error occurred",
+                        request
+                ));
+    }
+
+    private ApiError buildApiError(
+            HttpStatus status,
+            String message,
+            HttpServletRequest request
+    ) {
+        return new ApiError(
+                LocalDateTime.now(),
+                status.value(),
+                status.getReasonPhrase(),
+                message,
+                request.getRequestURI()
+        );
     }
 }

@@ -10,44 +10,22 @@ import org.springframework.stereotype.Service;
 @Service
 public class ShortUrlService {
     private final ShortUrlRepository shortUrlRepository;
-    private final ShortCodeGenerator shortCodeGenerator;
-    private static final int MAX_GENERATION_ATTEMPTS = 5;
+    private final ShortCodeService shortCodeService;
 
     public ShortUrlService(
             ShortUrlRepository shortUrlRepository,
-            ShortCodeGenerator shortCodeGenerator
+            ShortCodeService shortCodeService
     ) {
         this.shortUrlRepository = shortUrlRepository;
-        this.shortCodeGenerator = shortCodeGenerator;
-    }
-
-    private String generateUniqueShortCode() {
-        for (int attempt = 0; attempt < MAX_GENERATION_ATTEMPTS; attempt++) {
-            String shortCode = shortCodeGenerator.generate();
-
-            if (!shortUrlRepository.existsByShortCode(shortCode)) {
-                return shortCode;
-            }
-        }
-
-        throw new IllegalStateException(
-                "Unable to generate a unique short code after "
-                        + MAX_GENERATION_ATTEMPTS
-                        + " attempts"
-        );
+        this.shortCodeService = shortCodeService;
     }
 
     public ShortenUrlResponse shorten(String originalUrl) {
-        String shortCode = generateUniqueShortCode();
+        String shortCode = shortCodeService.generateUniqueCode();
         ShortUrl shortUrl = new ShortUrl(originalUrl, shortCode);
         ShortUrl savedShortUrl = shortUrlRepository.save(shortUrl);
 
-        return new ShortenUrlResponse(
-                savedShortUrl.getId(),
-                savedShortUrl.getOriginalUrl(),
-                savedShortUrl.getShortCode(),
-                savedShortUrl.getCreatedAt()
-        );
+        return toResponse(savedShortUrl);
     }
 
     public ShortenUrlResponse findByShortCode(String shortCode) {
@@ -58,6 +36,37 @@ public class ShortUrlService {
 
         shortUrlRepository.incrementAccessCount(shortCode);
 
+        return toResponse(shortUrl);
+    }
+
+    public ShortenUrlResponse update(String shortCode, String newOriginalUrl) {
+        ShortUrl shortUrl = findEntityByShortCode(shortCode);
+
+        shortUrl.updateOriginalUrl(newOriginalUrl);
+
+        ShortUrl updatedShortUrl = shortUrlRepository.save(shortUrl);
+
+        return toResponse(updatedShortUrl);
+    }
+
+    public void delete(String shortCode) {
+        ShortUrl shortUrl = findEntityByShortCode(shortCode);
+
+        shortUrlRepository.delete(shortUrl);
+    }
+
+    public UrlStatisticsResponse getStatistics(String shortCode) {
+        ShortUrl shortUrl = findEntityByShortCode(shortCode);
+
+        return new UrlStatisticsResponse(
+                shortUrl.getShortCode(),
+                shortUrl.getOriginalUrl(),
+                shortUrl.getCreatedAt(),
+                shortUrl.getAccessCount()
+        );
+    }
+
+    private ShortenUrlResponse toResponse(ShortUrl shortUrl) {
         return new ShortenUrlResponse(
                 shortUrl.getId(),
                 shortUrl.getOriginalUrl(),
@@ -66,44 +75,10 @@ public class ShortUrlService {
         );
     }
 
-    public ShortenUrlResponse update(String shortCode, String newOriginalUrl) {
-        ShortUrl shortUrl = shortUrlRepository.findByShortCode(shortCode)
-                .orElseThrow(() -> new ShortUrlNotFoundException(
-                        "Short URL not found for code: " + shortCode
-                ));
-
-        shortUrl.updateOriginalUrl(newOriginalUrl);
-
-        ShortUrl updatedShortUrl = shortUrlRepository.save(shortUrl);
-
-        return new ShortenUrlResponse(
-                updatedShortUrl.getId(),
-                updatedShortUrl.getOriginalUrl(),
-                updatedShortUrl.getShortCode(),
-                updatedShortUrl.getCreatedAt()
-        );
-    }
-
-    public void delete(String shortCode) {
-        ShortUrl shortUrl = shortUrlRepository.findByShortCode(shortCode)
-                .orElseThrow(() -> new ShortUrlNotFoundException(
-                        "Short URL not found for code: " + shortCode
-                ));
-
-        shortUrlRepository.delete(shortUrl);
-    }
-
-    public UrlStatisticsResponse getStatistics(String shortCode) {
-        ShortUrl shortUrl = shortUrlRepository.findByShortCode(shortCode)
+    private ShortUrl findEntityByShortCode(String shortCode) {
+        return shortUrlRepository.findByShortCode(shortCode)
                 .orElseThrow(() -> new ShortUrlNotFoundException(
                         "Short URL not found: " + shortCode
                 ));
-
-        return new UrlStatisticsResponse(
-                shortUrl.getShortCode(),
-                shortUrl.getOriginalUrl(),
-                shortUrl.getCreatedAt(),
-                shortUrl.getAccessCount()
-        );
     }
 }

@@ -2,6 +2,7 @@ package com.cleoaguiar.urlshorteningservice.service;
 
 import com.cleoaguiar.urlshorteningservice.domain.entity.ShortUrl;
 import com.cleoaguiar.urlshorteningservice.dto.ShortenUrlResponse;
+import com.cleoaguiar.urlshorteningservice.exception.ShortCodeGenerationException;
 import com.cleoaguiar.urlshorteningservice.exception.ShortUrlNotFoundException;
 import com.cleoaguiar.urlshorteningservice.repository.ShortUrlRepository;
 import org.junit.jupiter.api.Test;
@@ -26,24 +27,18 @@ public class ShortUrlServiceTest {
     private ShortUrlRepository shortUrlRepository;
 
     @Mock
-    private ShortCodeGenerator shortCodeGenerator;
+    private ShortCodeService shortCodeService;
 
     @InjectMocks
     private ShortUrlService shortUrlService;
-
-    private static final int MAX_GENERATION_ATTEMPTS = 5;
-    private static final int EXPECTED_GENERATION_ATTEMPTS = 2;
 
     @Test
     void shouldShortenUrlSuccessfully() {
         String originalUrl = "https://exemple.com";
         String shortCode = "abc1234";
 
-        when(shortCodeGenerator.generate())
+        when(shortCodeService.generateUniqueCode())
                 .thenReturn(shortCode);
-
-        when(shortUrlRepository.existsByShortCode(shortCode))
-                .thenReturn(false);
 
         when(shortUrlRepository.save(any(ShortUrl.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -53,57 +48,25 @@ public class ShortUrlServiceTest {
         assertEquals(originalUrl, response.originalUrl());
         assertEquals(shortCode, response.shortCode());
 
-        verify(shortCodeGenerator).generate();
-        verify(shortUrlRepository).existsByShortCode(shortCode);
-        verify(shortUrlRepository).save(any(ShortUrl.class));
-    }
-
-    @Test
-    void shouldGenerateNewShortCodeWhenCollisionOccurs() {
-        String originalUrl = "https://exemple.com";
-        String duplicateCode = "abc1234";
-        String uniqueCode = "xyz5678";
-
-        when(shortCodeGenerator.generate())
-                .thenReturn(duplicateCode, uniqueCode);
-
-        when(shortUrlRepository.existsByShortCode(duplicateCode))
-                .thenReturn(true);
-
-        when(shortUrlRepository.existsByShortCode(uniqueCode))
-                .thenReturn(false);
-
-        when(shortUrlRepository.save(any(ShortUrl.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
-
-        ShortenUrlResponse response = shortUrlService.shorten(originalUrl);
-
-        assertEquals(originalUrl, response.originalUrl());
-        assertEquals(uniqueCode, response.shortCode());
-
-        verify(shortCodeGenerator, times(EXPECTED_GENERATION_ATTEMPTS)).generate();
-        verify(shortUrlRepository).existsByShortCode(duplicateCode);
-        verify(shortUrlRepository).existsByShortCode(uniqueCode);
+        verify(shortCodeService).generateUniqueCode();
         verify(shortUrlRepository).save(any(ShortUrl.class));
     }
 
     @Test
     void shouldThrowExceptionWhenUnableToGenerateUniqueShortCode() {
         String originalUrl = "https://exemple.com";
-        String duplicateCode = "abc1234";
 
-        when(shortCodeGenerator.generate())
-                .thenReturn(duplicateCode);
-
-        when(shortUrlRepository.existsByShortCode(duplicateCode))
-                .thenReturn(true);
+        when(shortCodeService.generateUniqueCode())
+                .thenThrow(new ShortCodeGenerationException(
+                        "Unable to generate a unique short code"
+                ));
 
         assertThrows(
-                IllegalStateException.class, () -> shortUrlService.shorten(originalUrl)
+                ShortCodeGenerationException.class,
+                () -> shortUrlService.shorten(originalUrl)
         );
 
-        verify(shortCodeGenerator, times(MAX_GENERATION_ATTEMPTS)).generate();
-        verify(shortUrlRepository, times(MAX_GENERATION_ATTEMPTS)).existsByShortCode(duplicateCode);
+        verify(shortCodeService).generateUniqueCode();
         verify(shortUrlRepository, never()).save(any(ShortUrl.class));
     }
 
