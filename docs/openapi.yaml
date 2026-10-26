@@ -173,6 +173,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiError'
 
+  /{shortCode}:
+    get:
+      tags:
+        - Redirect
+      summary: Redirect to the original URL
+      description: Resolves a short code, increments its access count, and redirects to the original destination.
+      operationId: redirectShortUrl
+      parameters:
+        - name: shortCode
+          in: path
+          required: true
+          description: Unique code of the shortened URL.
+          schema:
+            type: string
+          example: abc1234
+      responses:
+        '302':
+          description: Redirect to the original destination.
+          headers:
+            Location:
+              description: Original destination URL.
+              schema:
+                type: string
+                format: uri
+        '404':
+          description: Short URL not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
 components:
   schemas:
     ShortenUrlRequest:
