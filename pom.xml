@@ -10,9 +10,9 @@
     </parent>
     <groupId>com.cleoaguiar</groupId>
     <artifactId>url-shortening-service</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>url-shortening-service</name>
-    <description>url-shortening-service</description>
+    <version>1.0.0</version>
+    <name>URL Shortening Service</name>
+    <description>A RESTful API for shortening URLs, managing shortened links, and tracking usage statistics.</description>
     <url/>
     <licenses>
         <license/>
