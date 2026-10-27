@@ -183,6 +183,11 @@ $env:TEST_DB_PASSWORD = "your_local_test_password"
 
 The `verify` lifecycle runs the test suite and fails the build if a test fails. The GitHub Actions workflow provisions a PostgreSQL service and configures the test environment variables automatically.
 
+## API Documentation
+
+- [API Usage Examples](docs/api-examples.md): practical requests and responses for all main API operations.
+- [OpenAPI Specification](docs/openapi.yaml): endpoint definitions, request schemas, response schemas, and HTTP status codes.
+
 ## Run with Docker
 
 The Dockerfile builds the application JAR in a build stage and runs it in a Java 25 runtime image. The standalone container still needs access to a PostgreSQL database; Docker Compose is the simplest way to run the complete environment.
