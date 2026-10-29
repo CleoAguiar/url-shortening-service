@@ -1,5 +1,7 @@
 # URL Shortening Service
 
+[![CI](https://github.com/CleoAguiar/url-shortening-service/actions/workflows/ci.yml/badge.svg)](https://github.com/CleoAguiar/url-shortening-service/actions/workflows/ci.yml)
+
 A RESTful API for creating and managing shortened URLs, redirecting visitors to their original destinations, and retrieving access statistics. The application is built with Java and Spring Boot and persists data in PostgreSQL.
 
 This project is part of my backend development roadmap and is based on the [URL Shortening Service project on roadmap.sh](https://roadmap.sh/projects/url-shortening-service).
@@ -328,7 +330,7 @@ See [docs/technical-decisions.md](docs/technical-decisions.md) for the architect
 
 ## Continuous integration
 
-The GitHub Actions workflow runs on pushes and pull requests targeting `develop` or `main`. It provisions PostgreSQL, configures the test environment variables, and runs:
+The GitHub Actions workflow runs on every push and pull request. It provisions PostgreSQL, configures the test environment variables, and runs:
 
 ```bash
 ./mvnw --batch-mode clean verify
