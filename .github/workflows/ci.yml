@@ -1,0 +1,51 @@
+name: Continuous Integration
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build application
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: url_shortening_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d url_shortening_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_DB_URL: jdbc:postgresql://localhost:5432/url_shortening_test
+      TEST_DB_USERNAME: postgres
+      TEST_DB_PASSWORD: postgres
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      - name: Grant execute permission to Maven Wrapper
+        run: chmod +x mvnw
+
+      - name: Run automated tests and verify build
+        run: ./mvnw --batch-mode clean verify

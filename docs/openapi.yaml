@@ -1,0 +1,325 @@
+openapi: 3.1.0
+
+info:
+  title: URL Shortening Service API
+  version: 1.0.0
+  description: API for creating, managing, and retrieving shortened URLs.
+
+paths:
+  /api/urls:
+    post:
+      tags:
+        - URLs
+      summary: Shorten a URL
+      description: Creates a shortened URL from the provided original URL.
+      operationId: shortenUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShortenUrlRequest'
+      responses:
+        '201':
+          description: Short URL created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortenUrlResponse'
+        '400':
+          description: Invalid request or URL.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/urls/{shortCode}:
+    parameters:
+      - name: shortCode
+        in: path
+        required: true
+        description: Unique code of the shortened URL.
+        schema:
+          type: string
+        example: abc1234
+
+    get:
+      tags:
+        - URLs
+      summary: Get a shortened URL
+      description: Retrieves the details of a shortened URL.
+      operationId: findUrlByShortCode
+      responses:
+        '200':
+          description: Short URL found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortenUrlResponse'
+        '404':
+          description: Short URL not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    put:
+      tags:
+        - URLs
+      summary: Update a shortened URL
+      description: Updates the original URL associated with an existing short code.
+      operationId: updateShortUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateShortUrlRequest'
+      responses:
+        '200':
+          description: Short URL updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShortenUrlResponse'
+        '400':
+          description: Invalid request or URL.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Short URL not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    delete:
+      tags:
+        - URLs
+      summary: Delete a shortened URL
+      description: Deletes an existing shortened URL.
+      operationId: deleteShortUrl
+      responses:
+        '204':
+          description: Short URL deleted successfully.
+        '404':
+          description: Short URL not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+
+  /api/urls/{shortCode}/statistics:
+    get:
+      tags:
+        - URLs
+      summary: Get URL statistics
+      description: >
+        Retrieves statistics for a shortened URL, including its current
+        access count. Retrieving statistics does not increment the counter.
+      operationId: getUrlStatistics
+      parameters:
+        - name: shortCode
+          in: path
+          required: true
+          description: Unique code of the shortened URL.
+          schema:
+            type: string
+          example: abc1234
+      responses:
+        '200':
+          description: URL statistics retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlStatisticsResponse'
+        '404':
+          description: Short URL not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /{shortCode}:
+    get:
+      tags:
+        - Redirect
+      summary: Redirect to the original URL
+      description: Resolves a short code, increments its access count, and redirects to the original destination.
+      operationId: redirectShortUrl
+      parameters:
+        - name: shortCode
+          in: path
+          required: true
+          description: Unique code of the shortened URL.
+          schema:
+            type: string
+          example: abc1234
+      responses:
+        '302':
+          description: Redirect to the original destination.
+          headers:
+            Location:
+              description: Original destination URL.
+              schema:
+                type: string
+                format: uri
+        '404':
+          description: Short URL not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+components:
+  schemas:
+    ShortenUrlRequest:
+      type: object
+      description: Request to create a shortened URL.
+      required:
+        - originalUrl
+      properties:
+        originalUrl:
+          type: string
+          format: uri
+          description: Original URL to be shortened
+          example: https://example.com/articles
+
+    ShortenUrlResponse:
+      type: object
+      description: Details of a shortened URL.
+      required:
+        - id
+        - originalUrl
+        - shortCode
+        - createdAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier of the shortened URL.
+          example: 1
+        originalUrl:
+          type: string
+          format: uri
+          description: The original destination URL.
+          example: https://example.com/article
+        shortCode:
+          type: string
+          description: Unique code assigned to the shortened URL.
+          example: abc1234
+        createdAt:
+          type: string
+          format: date-time
+          description: Date and time when the shortened URL was created.
+          example: "2026-09-24T22:00:00Z"
+
+    UpdateShortUrlRequest:
+      type: object
+      description: Request to update the original URL associated with a short code.
+      required:
+        - originalUrl
+      properties:
+        originalUrl:
+          type: string
+          format: uri
+          description: The new destination URL.
+          example: https://example.com/updated-article
+
+    UrlStatisticsResponse:
+      type: object
+      description: Statistics and details of a shortened URL.
+      required:
+        - shortCode
+        - originalUrl
+        - createdAt
+        - accessCount
+      properties:
+        shortCode:
+          type: string
+          description: Unique code of the shortened URL.
+          example: abc1234
+        originalUrl:
+          type: string
+          format: uri
+          description: The original destination URL.
+          example: https://example.com/article
+        createdAt:
+          type: string
+          format: date-time
+          description: Date and time when the shortened URL was created.
+          example: "2026-09-24T22:00:00Z"
+        accessCount:
+          type: integer
+          format: int64
+          description: Number of times the shortened URL was accessed.
+          example: 42
+
+    ApiError:
+      type: object
+      description: Standard error response returned by the API.
+      required:
+        - timestamp
+        - status
+        - error
+        - message
+        - path
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Date and time when the error occurred.
+          example: "2026-10-21T20:30:50.721Z"
+        status:
+          type: integer
+          description: HTTP status code.
+        error:
+          type: string
+          description: HTTP status description.
+        message:
+          type: string
+          description: Details about the error.
+          example: "Short URL not found for code: abc1234"
+        path:
+          type: string
+          description: Request path that caused the error.
+          example: /api/urls/abc1234
