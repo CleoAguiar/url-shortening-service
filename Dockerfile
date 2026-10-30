@@ -13,6 +13,7 @@ RUN chmod +x mvnw
 RUN ./mvnw -B dependency:go-offline
 
 COPY src/ src/
+COPY docs/ docs/
 
 RUN ./mvnw -B clean package -DskipTests
 
